@@ -176,3 +176,9 @@ cython_debug/
 .idea/
 
 Containerization/.local/
+
+Containerization/image_gray.jpg
+
+Containerization/image_rgb.jpg
+
+Containerization/image.jpg
