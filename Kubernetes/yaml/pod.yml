@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-name # YOUR POD NAME HERE
+spec:
+  automountServiceAccountToken: false
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/region
+            operator: In
+            values:
+            - us-central 
+  containers:
+    - name: pod-name # YOUR CONTAINER NAME HERE
+      image: ubuntu:20.04
+      command: ["sh", "-c", "echo 'Im a new pod' && sleep infinity"]
+      resources:
+        limits:
+          memory: 12Gi
+          cpu: 2
+        requests:
+          memory: 10Gi
+          cpu: 2

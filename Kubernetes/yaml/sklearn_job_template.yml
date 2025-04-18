@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ job_name }}
+spec:
+  template:
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values:
+                - us-central 
+      containers:
+      - name: sklearn-train-container
+        image: gitlab-registry.nrp-nautilus.io/gp-engine/jupyter-stacks/bigdata-2023:latest
+        workingDir: /data
+        env:
+            - name: SK_NUM_TREES
+              value: "{{ num_trees }}"
+            - name: SK_NUM_JOBS
+              value: "{{ num_jobs }}"
+        command: ["python3", "/data/RandomForestMNIST.py"]
+        volumeMounts:
+            - name: {{ pvc_name }}
+              mountPath: /data
+        resources:
+            limits:
+              memory: 1Gi
+              cpu: "{{ num_jobs }}"
+            requests:
+              memory: 1Gi
+              cpu: "{{ num_jobs }}"    
+      volumes:
+      - name: {{ pvc_name }}
+        persistentVolumeClaim:
+            claimName: {{ pvc_name }}
+      restartPolicy: Never      
+  backoffLimit: 1

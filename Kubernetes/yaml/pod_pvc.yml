@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-name-sso
+spec:
+  automountServiceAccountToken: false
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/region
+            operator: In
+            values:
+            - us-central 
+  containers:
+  - name: pod-name-sso
+    image: ubuntu:20.04
+    command: ["sh", "-c", "echo 'Im a new pod' && sleep infinity"]
+    resources:
+      limits:
+        memory: 12Gi
+        cpu: 2
+      requests:
+        memory: 10Gi
+        cpu: 2
+    volumeMounts:
+    - mountPath: /data
+      name: persistentVolume-name
+  volumes:
+    - name: persistentVolume-name
+      persistentVolumeClaim:
+        claimName: persistentVolume-name

@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+
+kind: Job
+
+metadata:
+  name: pi
+
+spec:
+  ttlSecondsAfterFinished: 86400 # a day
+  template:
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values:
+                - us-central 
+      containers:
+        - name: pi
+          image: perl:5.34
+          command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+          resources:
+            limits:
+              memory: 12Gi
+              cpu: 2
+            requests:
+              memory: 10Gi
+              cpu: 2
+      restartPolicy: Never
+  backoffLimit: 4

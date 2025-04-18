@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ job_name }}
+spec:
+  template:
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values:
+                - us-central 
+      containers:
+          - name: vit-train-container
+            image: gitlab-registry.nrp-nautilus.io/gp-engine/jupyter-stacks/bigdata-2023:latest
+            workingDir: /data
+            env:
+                - name: TORCH_NUM_JOBS
+                  value: "{{ num_jobs }}"
+                - name: TORCH_NUM_EPOCHS
+                  value: "{{ num_epochs }}"
+            command: ["python3", "/data/ViTCifar10.py"]
+            volumeMounts:
+                - name: {{ pvc_name }}
+                  mountPath: /data
+                - name: dshm
+                  mountPath: /dev/shm
+            resources:
+                limits:
+                  memory: 8Gi
+                  cpu: "{{ num_jobs }}"
+                  nvidia.com/gpu: 1
+                requests:
+                  memory: 8Gi
+                  cpu: "{{ num_jobs }}"    
+                  nvidia.com/gpu: 1
+      volumes:
+          - name: {{ pvc_name }}
+            persistentVolumeClaim:
+                claimName: {{ pvc_name }}
+          - name: dshm
+            emptyDir:
+              medium: Memory
+      affinity:
+        nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 1
+                    preference: 
+                      matchExpressions:
+                        - key: nvidia.com/gpu.product
+                          operator: In
+                          values:
+                            - NVIDIA-A100-80GB-PCIe-MIG-1g.10gb
+      restartPolicy: Never      
+  backoffLimit: 1
