@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jhurt-pod-jp
+spec:
+  automountServiceAccountToken: false
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: topology.kubernetes.io/region
+            operator: In
+            values:
+            - us-central 
+  containers:
+    - name: jhurt-pod-jp
+      image: jalexhurt/geo-jupyter:latest
+      env:
+          - name: NOTEBOOK_ARGS
+            value: "--ip 0.0.0.0 --port 8888 --allow-root"
+      resources:
+        limits:
+          memory: 12Gi
+          cpu: 2
+        requests:
+          memory: 10Gi
+          cpu: 2
